@@ -1,0 +1,21 @@
+[package]
+name = "dft-image"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+fft2d = { git = "https://github.com/mokurin000/fft2d", branch = "export-complex" }
+image = { version = "0.25", default-features = false, features = [
+    "png",
+    "jpeg",
+    "webp",
+    "bmp",
+] }
+palc = "0.0.1"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+opt-level = "z"
