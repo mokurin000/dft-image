@@ -47,7 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let scale = ((height * width) as f64).sqrt();
     let img_buf = fft_buf
         .iter()
-        .map(|comp| (comp.re / scale).mul(NORMALIZE).abs() as u16);
+        .map(|comp| (comp.re / scale).mul(NORMALIZE).abs() as _);
     let output_img =
         ImageBuffer::<Luma<u16>, Vec<u16>>::from_raw(width as _, height as _, img_buf.collect())
             .ok_or_else(|| "conversion error")?;
