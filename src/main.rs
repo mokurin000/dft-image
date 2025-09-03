@@ -1,5 +1,5 @@
 use core::f64;
-use std::{error::Error, ops::Mul};
+use std::{error::Error, ops::Mul, path::Path};
 
 use fft2d::{
     Complex,
@@ -12,16 +12,17 @@ use crate::args::CliArgs;
 
 mod args;
 
-const NORMALIZE: f64 = u16::MAX as f64;
+type GrayWidth = u16;
+const NORMALIZE: f64 = GrayWidth::MAX as f64;
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let CliArgs {
-        factor,
-        input_path,
-        output_path,
-    } = CliArgs::parse();
+fn fft_shift_image(
+    factor: f64,
+    input_path: impl AsRef<Path>,
+    output_path: impl AsRef<Path>,
+) -> Result<(), Box<dyn Error>> {
     let output_format = ImageFormat::from_extension(
         output_path
+            .as_ref()
             .extension()
             .ok_or_else(|| "missing file extension of output path")?,
     )
@@ -51,12 +52,36 @@ fn main() -> Result<(), Box<dyn Error>> {
             .mul(NORMALIZE)
             .abs()
             .log(f64::consts::E)
-            .mul(factor * 256.) as _
+            .mul(
+                factor
+                    * match size_of::<GrayWidth>() {
+                        1 => 1.0,
+                        2 => 256.0,
+                        _ => {
+                            unreachable!("GrayWidth must be one of u8/u16")
+                        }
+                    },
+            ) as _
     });
-    let output_img =
-        ImageBuffer::<Luma<u16>, Vec<u16>>::from_raw(width as _, height as _, img_buf.collect())
-            .ok_or_else(|| "conversion error")?;
+    let output_img = ImageBuffer::<Luma<GrayWidth>, Vec<GrayWidth>>::from_raw(
+        width as _,
+        height as _,
+        img_buf.collect(),
+    )
+    .ok_or_else(|| "conversion error")?;
 
     output_img.save_with_format(output_path, output_format)?;
+    Ok(())
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let CliArgs {
+        factor,
+        input_path,
+        output_path,
+    } = CliArgs::parse();
+
+    fft_shift_image(factor, input_path, output_path)?;
+
     Ok(())
 }
