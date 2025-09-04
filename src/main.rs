@@ -3,7 +3,7 @@ use std::{error::Error, ops::Mul, path::Path};
 
 use fft2d::{
     Complex,
-    slice::{fft_2d, fftshift},
+    slice::{fft_2d, fftshift_zerocopy},
 };
 use image::{ImageBuffer, ImageFormat, ImageReader, Luma};
 use palc::Parser;
@@ -45,7 +45,9 @@ fn fft_shift_image(
     // transposed width/height
     let (width, height) = (height, width);
 
-    let fft_buf = fftshift(width, height, &fft_buf);
+    unsafe {
+        fftshift_zerocopy(width, height, &mut fft_buf);
+    }
     let scale = ((height * width) as f64).sqrt();
     let img_buf = fft_buf.iter().map(|comp| {
         (comp.re / scale)

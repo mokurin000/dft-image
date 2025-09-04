@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-fft2d = { git = "https://github.com/mokurin000/fft2d", branch = "export-complex" }
+fft2d = { git = "https://github.com/mokurin000/fft2d", branch = "zerocopy-fft-shift" }
 image = { version = "0.25", default-features = false, features = [
     "png",
     "jpeg",
