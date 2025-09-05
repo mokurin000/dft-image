@@ -19,6 +19,7 @@ fn fft_shift_image(
     factor: f64,
     input_path: impl AsRef<Path>,
     output_path: impl AsRef<Path>,
+    skip_shift: bool,
 ) -> Result<(), Box<dyn Error>> {
     let output_format = ImageFormat::from_extension(
         output_path
@@ -45,8 +46,10 @@ fn fft_shift_image(
     // transposed width/height
     let (width, height) = (height, width);
 
-    unsafe {
-        fftshift_zerocopy(width, height, &mut fft_buf);
+    if !skip_shift {
+        unsafe {
+            fftshift_zerocopy(width, height, &mut fft_buf);
+        }
     }
     let scale = ((height * width) as f64).sqrt();
     let img_buf = fft_buf.iter().map(|comp| {
@@ -81,9 +84,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         factor,
         input_path,
         output_path,
+        skip_shift,
     } = CliArgs::parse();
 
-    fft_shift_image(factor, input_path, output_path)?;
+    fft_shift_image(factor, input_path, output_path, skip_shift)?;
 
     Ok(())
 }
